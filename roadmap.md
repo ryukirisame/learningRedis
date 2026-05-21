@@ -324,3 +324,22 @@ And specifically ask:
 > “Where would Redis fit here?”
 
 That level of understanding is already strong for most 2 YOE backend/system design interviews.
+
+
+
+
+## Here’s the order I recommend we learn:
+
+Redis fundamentals
+Core data structures
+TTL + expiration
+Caching patterns
+Cache failures (stampede, avalanche, etc.)
+Eviction policies
+Persistence
+Replication
+Clustering
+Distributed locking
+Rate limiting
+Pub/Sub
+Redis in system design problems
