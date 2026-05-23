@@ -136,3 +136,49 @@ HGETALL user:42  // Get everything
 
 - So hashes are good for object/JSON like structured data and partial updates.
 
+### User / Session Profiles
+```
+HSET session:abc123
+  userId   "42"
+  role     "admin"
+  browser  "Chrome"
+  loginAt  "1716000000"
+
+# Update just the last active time
+HSET session:abc123 lastSeen "1716003600"
+```
+
+### Product Catalog
+```
+HSET product:101
+  name     "Wireless Mouse"
+  price    "799"
+  stock    "200"
+  category "Electronics"
+
+# Decrement stock when purchased
+HINCRBY product:101 stock -1
+```
+
+### Caching a DB row
+```
+# Cache a database row without serializing to JSON
+HSET cache:order:5001
+  status      "shipped"
+  total       "1299"
+  customerId  "42"
+  createdAt   "2024-01-15"
+
+# Read just the status without deserializing
+HGET cache:order:5001 status
+```
+
+### Config/Feature flags
+```
+HSET app:config
+  maintenance  "false"
+  maxUploadMB  "10"
+  theme        "dark"
+
+HGET app:config maintenance    # → "false"
+```
