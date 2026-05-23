@@ -39,3 +39,88 @@ Redis is not ideal for:
   - Because, Redis is in-memory and large files will take lots of RAM and things will become very expensive.
   - If we still decide to keep large data here, moving large data in Redis will definitely introduce latency, which defeats the purpose of Redis to be low latency/high speed layer.
 - Since the engine of Redis is single-threaded, it can only execute one command at a time. So, if you end up running a command that takes a lot of time to process it, Redis will freeze and every other incoming request coming from application server will have to wait. 
+
+
+# Data Types
+
+Before we move to data structures, Redis stores everything as `key -> value`. Where `key` is a string. The `value` can be any data type provided by redis.
+
+## 1. Strings
+- It is the most basic data type in redis.
+- `value` can be anything: text, integers, floating point numbers, or binary data (like images or serialized objects).
+
+### Basic Commands
+
+```
+SET name "Alice"
+GET name          # → "Alice"
+
+SET age 25
+GET age           # → "25"
+```
+
+
+```
+EXPIRE session:123 3600   //  Key expires after 1 hour.
+TTL session:123       // Returns remaining lifetime.
+DEL session:123  // Deletes one or more key
+```
+
+Redis can treat strings as integers and do atomic math on them:
+```
+SET visits 0
+
+INCR   visits       # → 1  (increment by 1)
+INCR   visits       # → 2
+INCRBY visits 10    # → 12
+DECR   visits       # → 11
+DECRBY visits 5     # → 6
+
+# Float support
+SET price 9.99
+INCRBYFLOAT price 0.50   # → 10.49
+```
+Why "atomic" matters: Even with 1000 concurrent requests hitting INCR, Redis guarantees no lost updates — no race conditions. All of this because Redis is single-threaded.
+
+
+### When strings are not suitable
+Suppose we store this as one big string:
+```json
+{
+  "name": "Siddharth",
+  "age": 24,
+  "city": "Chennai"
+}
+```
+Updating just one field would mean: Read the full object, update the desired field, and write the entire object back to redis. This is where Hashes makes more sense.
+
+## Hashes
+
+- A Redis Hash is a data type that stores a collection of field-value pairs under a single key.
+- Think of it as: `one Redis key → multiple fields → multiple values`
+```
+Key: "user:42"
+  ├── name    → "Alice"
+  ├── email   → "alice@gmail.com"
+  ├── age     → "28"
+  └── city    → "Chennai"
+```
+
+### Basic Commands
+```
+# Set one or more fields
+HSET user:42  name "Alice"  email "alice@gmail.com"  age 28  city "Chennai"
+
+# Get a single field
+HGET user:42 name        # → "Alice"
+HGET user:42 age         # → "28"
+
+# Get multiple fields
+HMGET user:42 name email city
+# → ["Alice", "alice@gmail.com", "Chennai"]
+
+HGETALL user:42  // Get everything
+```
+
+- So hashes are good for object/JSON like structured data and partial updates.
+
