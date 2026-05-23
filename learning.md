@@ -83,6 +83,18 @@ INCRBYFLOAT price 0.50   # → 10.49
 Why "atomic" matters: Even with 1000 concurrent requests hitting INCR, Redis guarantees no lost updates — no race conditions. All of this because Redis is single-threaded.
 
 
+### Counters
+- Strings can be used for counters like page views.
+- Key: `page:home:views`
+- Increment: `INCR page:home:views`, `INCRBY page:home:views 5`
+
+### OTP storage
+- OTPs are temporary values. Redis is perfect because of TTL support.
+
+```
+SET otp:john@example.com 123456 EX 300  // Expires in 5 minutes
+```
+
 ### When strings are not suitable
 Suppose we store this as one big string:
 ```json
