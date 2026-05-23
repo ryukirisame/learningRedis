@@ -27,3 +27,15 @@
   - temporary data
   - performance-critical data
 NOT usually as the primary permanent database for everything.
+
+# Key-Value model
+- Redis stores data like: `<key> -> <value>`.
+- Keys are usually strings and values can be any data type provided by Redis, like Strings, JSON, Lists, Sets, Hashes, Sorted Sets etc...
+
+# What is Redis not good at?
+Redis is not ideal for:
+- Complex Queries & Data Relationships
+- While redis handles small data points (strings, numbers, small JSON blocks) incredibly well. It struggles heavily with large files like images, videos, or massive PDF blobs.
+  - Because, Redis is in-memory and large files will take lots of RAM and things will become very expensive.
+  - If we still decide to keep large data here, moving large data in Redis will definitely introduce latency, which defeats the purpose of Redis to be low latency/high speed layer.
+- Since the engine of Redis is single-threaded, it can only execute one command at a time. So, if you end up running a command that takes a lot of time to process it, Redis will freeze and every other incoming request coming from application server will have to wait. 
