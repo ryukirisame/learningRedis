@@ -22,6 +22,7 @@ If you store sessions inside application server then it will break when you:
 ## How redis solves the problem
 - Since Redis is used as a single layer, so it becomes a centralized place where all the sessions are stored. All the application servers share this store. So no sync issues.
 - Redis has a feature of Time-to-Live (TTL), which we can set for all the session key-value pairs. So that sessions can expire automatically after a specified period of time. Redis deletes the key-value entry automatically.
+  - In production, we use **sliding session window** rather than a hard expiration. Everytime a user makes a request and our backend successfully reads their session, we extend their session expiry time. 
 - Since session data should be quickly accessed, so Redis is a good fit whose latency is very very low compared to traditional databases.
 - Redis also has a persistence layer. So if redis restarts, the sessions can be restored.
 - Since redis engine is single-threaded, so no read/write synchronization issues.
