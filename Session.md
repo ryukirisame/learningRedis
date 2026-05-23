@@ -26,3 +26,32 @@ If you store sessions inside application server then it will break when you:
 - Redis also has a persistence layer. So if redis restarts, the sessions can be restored.
 - Since redis engine is single-threaded, so no read/write synchronization issues.
 
+
+## Full Session Flow
+```
+Browser
+   ↓
+Login Request
+   ↓
+Backend Server
+   ↓
+Create Session
+   ↓
+Store Session in Redis
+   ↓
+Send Session ID Cookie
+   ↓
+Browser stores cookie
+```
+Then for future requests:
+```
+Browser sends session_id cookie
+   ↓
+Backend reads cookie
+   ↓
+Backend fetches session from Redis
+   ↓
+User authenticated
+```
+
+- To forcefully logout a user, just delete the key.
