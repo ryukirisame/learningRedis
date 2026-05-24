@@ -574,3 +574,5 @@ SET name "Alice"
   - Load the snapshot first.
   - Then replay the AOF.
 
+## Question: Can Redis lose data?
+Yes, depending on persistence configuration.
