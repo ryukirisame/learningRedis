@@ -474,7 +474,7 @@ ZINCRBY leaderboard 50 Alice
 
 ### Real-World Use Cases
 1. Gaming Leaderboards
-2. Trending Systems
-  - Example: Reddit, Youtube, Twitter trends.
-  - Score can represent: likes, views, engagement
+2. Trending Systems:
+    - Example: Reddit, Youtube, Twitter trends.
+    - Score can represent: likes, views, engagement
 3. Priority Queues  
