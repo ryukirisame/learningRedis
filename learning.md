@@ -182,3 +182,97 @@ HSET app:config
 
 HGET app:config maintenance    # → "false"
 ```
+
+## Lists
+- A Redis List is an ordered collection of strings, sorted by insertion order. Internally it's a doubly linked list, so adding elements to the head or tail is extremely fast (O(1)), regardless of list size.
+- They are frequently used to:
+  - Implement stacks & queues.
+  -  Build queue management for background worker systems.
+
+### Basic Commands
+
+```bash
+# Add to LEFT (head)
+LPUSH tasks "task1"
+LPUSH tasks "task2"
+LPUSH tasks "task3"
+# List: [task3, task2, task1]
+
+# Add to RIGHT (tail)
+RPUSH tasks "task4"
+# List: [task3, task2, task1, task4]
+
+# Push multiple at once
+LPUSH notifications "notif1" "notif2" "notif3"
+```
+```bash
+LPOP tasks          # → "task3"  (removes from head)
+RPOP tasks          # → "task4"  (removes from tail)
+
+# Pop multiple elements (Redis 6.2+)
+LPOP tasks 2        # → ["task2", "task1"]
+```
+
+### Blocking Operations (VVIMP)
+- This is mostly used in Producer-Consumer problem.
+- The Problem: Without blocking operation, a consumer will keep polling(keep checking) an empty list like this:
+  - ``` bash
+    LPOP myqueue   # Returns (nil) — nothing there
+    LPOP myqueue   # Returns (nil) — still nothing
+    LPOP myqueue   # Returns (nil) — wasting CPU and connections
+    ```
+    or basically:
+    ```
+    while(true):
+     check queue
+    ```
+  - This is called **busy-waiting** or **polling** (Keep checking the queue), and it wastes CPU cycles.
+- Blocking operations solve this elegantly — the consumer simply waits until data arrives.
+
+#### The Commands
+
+```bash
+BLPOP key [key ...] timeout
+BRPOP key [key ...] timeout
+```
+- `BLPOP` — blocks and pops from the left (head)
+- `BRPOP` — blocks and pops from the right (tail)
+- `timeout` — how many seconds to wait before giving up (0 = wait forever)
+
+#### Basic Example
+Terminal 1 (Consumer) - waits up to 30 secs
+```bash
+BLPOP myqueue 30
+```
+The consumer is now blocked and sleeping — no CPU used.
+
+
+Terminal 2 (Producer) - pushes a job:
+```bash
+RPUSH myqueue "send-email"
+```
+Terminal 1 immediately wakes up and returns:
+```bash
+1) "myqueue"      # which list the element came from
+2) "send-email"   # the element itself
+```
+The response is always a two-element array: the list name and the value. This matters because BLPOP can watch multiple lists at once.
+
+
+#### Watching multiple lists
+
+This is where blocking operations get really useful. A single consumer can watch several queues at once and respond to whichever has data first:
+
+```bash
+BLPOP high-priority normal-priority low-priority 0
+```
+Redis checks the lists left to right. If high-priority has data, it returns from there first — even if normal-priority also has data. This gives you priority queue behavior for free.
+
+#### Timeout Behaviour
+- ```BLPOP myqueue 10``` If nothing arrives within 10 secs, redis returns `nil`.
+- With `timeout = 0`, it waits indefinitely: `BLPOP myqueue 0` -> waits forever until something arrives.
+- 
+
+
+
+
