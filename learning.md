@@ -264,7 +264,7 @@ Note: The response is always an array containing both the list name and the valu
 
 #### Advanced Behavior: Watching multiple lists
 
-This is where blocking operations get really useful. A single consumer can watch several queues at once and respond to whichever has data first. This allows us to build a **priority queue** system completely out of the box.
+This is where blocking operations get really useful. A single consumer can watch several queues at once and respond to whichever has data first. This allows us to build a **priority queue** system completely out of the box. (Remember: The priority queue for processes in OS, not the min/max heap one)
 
 ```bash
 BLPOP high-priority normal-priority low-priority 0
@@ -421,3 +421,60 @@ SADD blocked:ips "192.168.1.50" "10.0.0.99"
 SISMEMBER blocked:ips "192.168.1.50"   # → 1 (block!)
 SISMEMBER blocked:ips "192.168.1.1"    # → 0 (allow)
 ```
+
+
+## Sorted Sets
+- A set but with a score associated with each element which determines its order.
+- Set stores: `(member, score)`. Redis automatically keeps elements sorted by score.
+ 
+### Add elements
+```bash
+ZADD leaderboard 100 Alice
+ZADD leaderboard 250 Bob
+ZADD leaderboard 180 Charlie
+```
+Redis will automatically sort the elements internally:
+```bash
+Bob      250
+Charlie  180
+Alice    100
+```
+- Note: The elements are sorted in ascending order according to the score. So Alice will come first, then Charlie, then Bob.
+ 
+### Retrieve elements
+```bash
+ZRANGE leaderboard 0 -1
+```
+Gets ordered members.
+
+Reverse order: Most common for leaderboards.
+```bash
+ZREVRANGE leaderboard 0 9
+```
+Gets top 10 players
+
+### Get Rank
+```bash
+ZRANK leaderboard Alice
+```
+Gets the rank, but neeche se :)
+
+Reverse rank
+```bash
+ZREVRANK leaderboard Bob
+```
+Gets the rank, upar se :)
+
+
+### Increment Score
+```bash
+ZINCRBY leaderboard 50 Alice
+```
+
+
+### Real-World Use Cases
+1. Gaming Leaderboards
+2. Trending Systems
+  - Example: Reddit, Youtube, Twitter trends.
+  - Score can represent: likes, views, engagement
+3. Priority Queues  
