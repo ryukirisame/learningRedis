@@ -507,3 +507,36 @@ ZINCRBY leaderboard 50 Alice
   - Redis crashes at 10:04
   - We will lose 4 mins of data.
 
+## AOF (Append Only File)
+- AOF logs every single **write** (not read) operation to a file and replays it upon server restart to recreate the dataset.
+
+### `fsync` 
+- Whenever Redis (or any program) writes data to disk, it doesn't go directly to the physical disk. Instead, the OS buffers the data in a temporary memory zone called the OS Page Cache.The OS flushes this buffer to disk at its own leisure, typically every 30 seconds.
+```
+Redis  →  OS Page Cache (RAM)  →  (eventually)  →  Physical Disk
+```
+
+- This creates a risk: If the Redis process crashes, your data is safe because the OS still holds it in memory and will eventually flush it to the disk. But if the entire server loses power or the OS crashes, that data in the cache is gone forever.
+- This is where fsync comes in. `fsync()` is a system call that forces the Operating System to flush all the cached data from the page cache directly onto the physical disk.
+- Redis allows us to configure how often `fsync()` is run by OS for our AOF file.
+
+### `fsync` Policies:
+1. always
+    - Redis calls `fsync` after every single write command it receives.
+    - Safest, but slowest.
+2. everysec (default)
+    - Flush once per second.
+    - Good balance, but can lost ~ 1sec of data.
+3. no
+    - OS decides flush timing.
+    - fastest, least safe
+
+
+
+| Policy | Performance | Durability / Safety | Max Data Lost on Power Failure |
+|---|---|---|---|
+| always | Slow | Extremely High | A fraction of a second (1 write) |
+| everysec | Fast (Near-Optimal) | High | 1–2 seconds |
+| no | Fastest | Low | Up to 30 seconds (OS dependent) |
+
+
