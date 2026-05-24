@@ -215,13 +215,14 @@ LPOP tasks 2        # → ["task2", "task1"]
 
 ### Blocking Operations (VVIMP)
 - This is mostly used in Producer-Consumer problem.
-- The Problem: Without blocking operation, a consumer will keep polling(keep checking) an empty list like this:
+- The Problem: Busy-Waiting (Polling)
+  - Without blocking operations, a consumer system must constantly "poll" Redis to see if new work has arrived.
   - ``` bash
     LPOP myqueue   # Returns (nil) — nothing there
     LPOP myqueue   # Returns (nil) — still nothing
     LPOP myqueue   # Returns (nil) — wasting CPU and connections
     ```
-    or basically:
+    In code, this will look like an infinite loop:
     ```
     while(true):
      check queue
@@ -239,7 +240,8 @@ BRPOP key [key ...] timeout
 - `BRPOP` — blocks and pops from the right (tail)
 - `timeout` — how many seconds to wait before giving up (0 = wait forever)
 
-#### Basic Example
+#### Step-by-Step Execution Example
+
 Terminal 1 (Consumer) - waits up to 30 secs
 ```bash
 BLPOP myqueue 30
@@ -256,22 +258,32 @@ Terminal 1 immediately wakes up and returns:
 1) "myqueue"      # which list the element came from
 2) "send-email"   # the element itself
 ```
-The response is always a two-element array: the list name and the value. This matters because BLPOP can watch multiple lists at once.
+Note: The response is always an array containing both the list name and the value. This matters because BLPOP can watch multiple lists at once.
 
 
-#### Watching multiple lists
+#### Advanced Behavior: Watching multiple lists
 
-This is where blocking operations get really useful. A single consumer can watch several queues at once and respond to whichever has data first:
+This is where blocking operations get really useful. A single consumer can watch several queues at once and respond to whichever has data first. This allows us to build a **priority queue** system completely out of the box.
 
 ```bash
 BLPOP high-priority normal-priority low-priority 0
 ```
-Redis checks the lists left to right. If high-priority has data, it returns from there first — even if normal-priority also has data. This gives you priority queue behavior for free.
+**How Redis evaluates this:**
+- Redis scans the keys from left to right (`high` -> `normal` -> `low`).
+- If `high-priority` has elements, it pops from it immediately.
+- If `high-priority` is empty but `normal-priority` has data, it pops from `normal`.
+- If all lists are empty, the client blocks on all of them. The moment any of them receives data, the client wakes up and the first item is returned along with the name of the list it originated from.
 
 #### Timeout Behaviour
 - ```BLPOP myqueue 10``` If nothing arrives within 10 secs, redis returns `nil`.
 - With `timeout = 0`, it waits indefinitely: `BLPOP myqueue 0` -> waits forever until something arrives.
-- 
+
+### Use-Cases of lists
+We can use lists whereever we need to maintain a queue or a stack. The following are some of the use cases:
+- Producer-Consumer pattern
+- Background jobs
+- Notification systems
+- Task Scheduling etc...
 
 
 
