@@ -346,4 +346,78 @@ SDIFF frontend backend
 # → {"Eve", "Frank"}    ← only in frontend
 ```
 
+### Real-World Use Cases
 
+#### Online/Active users
+```bash
+# User comes online
+SADD online:users "user:42"
+
+# User goes offline
+SREM online:users "user:42"
+
+# Is user online?
+SISMEMBER online:users "user:42"   # → 1 or 0
+
+# How many online?
+SCARD online:users
+```
+
+#### Tags on a post
+```bash
+SADD post:101:tags  "redis" "database" "backend"
+SADD post:202:tags  "redis" "caching"  "performance"
+
+# Common tag(s)
+SINTER post:101:tags post:202:tags   # → {"redis"}
+
+# All unique tags across posts
+SUNION post:101:tags post:202:tags
+# → {"redis", "database", "backend", "caching", "performance"}
+```
+
+#### Unique visitors
+```bash
+# Track unique visitors per day
+SADD visitors:2024-01-15 "user:42" "user:17" "user:42"
+# user:42 counted only once
+
+SCARD visitors:2024-01-15    # → 2 unique visitors
+
+# Visitors on both days (returning users)
+SINTER visitors:2024-01-15 visitors:2024-01-16
+```
+
+#### Mutual Friends
+```bash
+SADD friends:alice  "bob" "carol" "dave"
+SADD friends:bob    "alice" "carol" "eve"
+
+# Mutual friends between Alice and Bob
+SINTER friends:alice friends:bob    # → {"carol"}
+
+# Suggestions for Alice (Bob's friends she doesn't know)
+SDIFF friends:bob friends:alice     # → {"eve"}
+```
+
+#### Permission/Roles
+```bash
+SADD role:admin   "read" "write" "delete" "manage"
+SADD role:editor  "read" "write"
+SADD role:viewer  "read"
+
+# What can admin do that editor can't?
+SDIFF role:admin role:editor        # → {"delete", "manage"}
+
+# Check if user has permission
+SISMEMBER role:editor "delete"      # → 0 (not allowed)
+```
+
+#### Blacklist/Blocklist
+```bash
+SADD blocked:ips "192.168.1.50" "10.0.0.99"
+
+# Check on every request
+SISMEMBER blocked:ips "192.168.1.50"   # → 1 (block!)
+SISMEMBER blocked:ips "192.168.1.1"    # → 0 (allow)
+```
