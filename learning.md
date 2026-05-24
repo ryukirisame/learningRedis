@@ -291,4 +291,59 @@ To describe a common use case step by step, imagine your home page shows the lat
 - When users visit the home page, we use LRANGE 0 9 in order to get the latest 10 posted items.
 
 
+## Sets
+- It is an unordered collection of unique elements.
+- Adding the same element twice has no effect.
+
+### Basic Commands
+Add members
+```bash
+SADD skills "python" "redis" "docker" "python"
+# "python" added only once — duplicates ignored
+
+SMEMBERS skills     # → {"python", "redis", "docker"}
+SCARD skills        # → 3  (count of members)
+```
+
+Check membership
+```bash
+SISMEMBER skills "redis"    # → 1 (yes)
+SISMEMBER skills "java"     # → 0 (no)
+```
+
+Remove members
+```bash
+SREM skills "docker"
+SMEMBERS skills     # → {"python", "redis"}
+```
+
+### Set Operations
+
+Let's consider the following sets:
+```bash
+SADD backend  "Alice" "Bob" "Carol" "Dave"
+SADD frontend "Carol" "Dave" "Eve"  "Frank"
+```
+
+#### Intersection Operation (common members)
+```bash
+SINTER backend frontend
+# → {"Carol", "Dave"}   ← work on BOTH teams
+```
+
+#### Union operation (all unique members)
+```bash
+SUNION backend frontend
+# → {"Alice", "Bob", "Carol", "Dave", "Eve", "Frank"}
+```
+
+#### Difference operation (In first, not in others)
+```bash
+SDIFF backend frontend
+# → {"Alice", "Bob"}    ← only in backend
+
+SDIFF frontend backend
+# → {"Eve", "Frank"}    ← only in frontend
+```
+
 
