@@ -478,3 +478,32 @@ ZINCRBY leaderboard 50 Alice
     - Example: Reddit, Youtube, Twitter trends.
     - Score can represent: likes, views, engagement
 3. Priority Queues  
+
+# Redis Persistence
+- Redis is an in-memory data-store. So, if redis server crashes or restarts, does that mean all data in redis would be lost? Well, no. Redis does allow persistence.
+- Persisting to disk allows redis to recover data after restart.
+
+#### Persistence Mechanisms
+1. RDB (Redis Database Snapshot)
+2. AOF (Append Only File)
+
+## RDB (Redis Database Snapshot)
+- The idea is to take snapshot of entire memory periodically.
+- For example: Take a snapshot every 5 mins, or Take a snapshot after N write operations.
+- This creates a single `.rdb` file, which is compact and easy to reload.
+- How it works internally:
+  - ```
+    1. Redis calls fork() → creates a child process
+    2. Child process writes snapshot to a temp `.rdb` file
+    3. Main process keeps serving requests (no blocking!)
+    4. Child finishes → atomically replaces old dump.rdb
+    ```
+- RDB creation should not be frequent operation, as it is a heavy operation. Otherwise our system would be busy in taking snapshot most of the time.
+
+### Problems with RDB approach
+- Possible Data Loss
+- Suppose:
+  - snapshot taken at 10:00
+  - Redis crashes at 10:04
+  - We will lose 4 mins of data.
+
