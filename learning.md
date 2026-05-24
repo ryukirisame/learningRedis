@@ -188,6 +188,7 @@ HGET app:config maintenance    # → "false"
 - They are frequently used to:
   - Implement stacks & queues.
   -  Build queue management for background worker systems.
+- We do not need to create an empty list (key) before pushing elements to it. It will be done automatically by Redis. Similary, we do not need to remove a list (key) explicitly if the list has 0 elements, redis will automatically delete the key and frees up the memory.
 
 ### Basic Commands
 
@@ -285,6 +286,9 @@ We can use lists whereever we need to maintain a queue or a stack. The following
 - Notification systems
 - Task Scheduling etc...
 
+To describe a common use case step by step, imagine your home page shows the latest photos published in a photo sharing social network and you want to speedup access.
+- Every time a user posts a new photo, we add its ID into a list with LPUSH.
+- When users visit the home page, we use LRANGE 0 9 in order to get the latest 10 posted items.
 
 
 
