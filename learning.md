@@ -531,12 +531,43 @@ Redis  →  OS Page Cache (RAM)  →  (eventually)  →  Physical Disk
     - OS decides flush timing.
     - fastest, least safe
 
-
-
 | Policy | Performance | Durability / Safety | Max Data Lost on Power Failure |
 |---|---|---|---|
 | always | Slow | Extremely High | A fraction of a second (1 write) |
 | everysec | Fast (Near-Optimal) | High | 1–2 seconds |
 | no | Fastest | Low | Up to 30 seconds (OS dependent) |
 
+### AOF Compaction - Rewriting the log file
+- Overtime, AOF file grows large. So, periodically, the entire AOF file is re-written for compaction.
+- Example:
+```bash
+Original AOF:                    After Rewrite:
+──────────────────────           ──────────────
+SET counter 0                    SET counter 42
+INCR counter      (42 times)     SET name "Alice"
+INCR counter
+...
+SET name "Alice"
+```
+- This operation is called **BGREWRITEAOF**.
+- We can trigger compaction (`BGREWRITEAOF`) manually or configure it to be done automatically.
+
+- How REWRITE/COMPACTION happens in the background?
+  - A background thread rewrites to a temp AOF, and then renames it, replacing the old AOF file.
+
+ ### Problems with AOF
+ - AOF files grow large overtime. Although we compact, but that also may grow large overtime.
+ - AOF files are bigger than RDB.
+ - Solution is to use a hybrid approach: RDB + AOF
+
+## RDB + AOF (Hybrid approach)
+- The idea is to take snapshot and write logs as well.
+- Take snapshot every few minutes, and create AOF starting from the latest snapshot time only.
+
+### Idea:
+- Take a snapshot at 10:00 AM
+- Start logging commands in AOF starting from 10:00 AM, discard previous AOF file.
+- If redis restarts:
+  - Load the snapshot first.
+  - Then replay the AOF.
 
