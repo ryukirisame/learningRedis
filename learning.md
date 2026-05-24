@@ -488,7 +488,7 @@ ZINCRBY leaderboard 50 Alice
 2. AOF (Append Only File)
 
 ## RDB (Redis Database Snapshot)
-- The idea is to take snapshot of entire memory periodically.
+- The idea is to take point-in-time snapshot of entire memory periodically.
 - For example: Take a snapshot every 5 mins, or Take a snapshot after N write operations.
 - This creates a single `.rdb` file, which is compact and easy to reload.
 - How it works internally:
@@ -538,7 +538,8 @@ Redis  →  OS Page Cache (RAM)  →  (eventually)  →  Physical Disk
 | no | Fastest | Low | Up to 30 seconds (OS dependent) |
 
 ### AOF Compaction - Rewriting the log file
-- Overtime, AOF file grows large. So, periodically, the entire AOF file is re-written for compaction.
+- Overtime, AOF file grows large. If a key is incremented a million times, the AOF will contain one million lines of log data.
+- So, periodically, the entire AOF file is re-written for compaction.
 - Example:
 ```bash
 Original AOF:                    After Rewrite:
@@ -553,7 +554,9 @@ SET name "Alice"
 - We can trigger compaction (`BGREWRITEAOF`) manually or configure it to be done automatically.
 
 - How REWRITE/COMPACTION happens in the background?
-  - A background thread rewrites to a temp AOF, and then renames it, replacing the old AOF file.
+  - A background thread performs compaction to a temp AOF, and then renames it, replacing the old AOF file.
+  - While the child process is busy in compaction, the main process is still accepting new traffic. Redis records these new incoming updates in an AOF Rewrite Buffer.
+  - Once the child process finishes the base rewrite, Redis appends those buffered real-time updates to the end of the new file and atomically swaps the old, bloated AOF file out for the new compacted one.
 
  ### Problems with AOF
  - AOF files grow large overtime. Although we compact, but that also may grow large overtime.
@@ -566,7 +569,7 @@ SET name "Alice"
 
 ### Idea:
 - Take a snapshot at 10:00 AM
-- Start logging commands in AOF starting from 10:00 AM, discard previous AOF file.
+- Start logging commands in AOF starting from 10:00 AM. (Optionally discard previous AOF file if we want)
 - If redis restarts:
   - Load the snapshot first.
   - Then replay the AOF.
