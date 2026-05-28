@@ -576,3 +576,19 @@ SET name "Alice"
 
 ## Question: Can Redis lose data?
 Yes, depending on persistence configuration.
+
+
+# Replication in Redis
+[Replication in depth](https://github.com/ryukirisame/learnSystemDesign/blob/main/Distributed%20Systems/1.%20Replication.md)
+
+- Redis uses the leader-follower architecture with a single leader.
+- Redis replication is fully asynchronous by default.
+- At this point, Redis is not just a cache, but a distributed system.
+
+## Redis Sentinel
+- Sentinel is the automatic failover system for Redis.
+- If the master goes down, Sentinel automatically promotes one of the replicas to be the new master and reconfigures the other replicas to follow the new master.
+- Clients don't connect directly to the Redis master. Instead they ask Sentinel "who is the current master?" and Sentinel tells them. This means when a failover happens and a new master is elected, clients automatically get redirected to the new master without any manual intervention.
+- We typically run multiple Sentinel instances (at least 3) to avoid the Sentinel itself becoming a single point of failure.
+
+
