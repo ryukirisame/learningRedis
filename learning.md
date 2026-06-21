@@ -250,7 +250,7 @@ LPOP tasks 2        # → ["task2", "task1"]
      check queue
     ```
   - This is called **busy-waiting** or **polling** (Keep checking the queue), and it wastes CPU cycles.
-- Blocking operations solve this elegantly — the consumer simply waits until data arrives.
+- Blocking operations solve this elegantly — the consumer/client simply waits until data arrives.
 
 #### The Commands
 
@@ -261,6 +261,15 @@ BRPOP key [key ...] timeout
 - `BLPOP` — blocks and pops from the left (head)
 - `BRPOP` — blocks and pops from the right (tail)
 - `timeout` — how many seconds to wait before giving up (0 = wait forever)
+
+
+The idea is this:
+- Try to pop an element from the queue.
+- If the list is empty, don't return immediately.
+- Wait until the specified timeout for an item to appear in the queue.
+- As soon as an item is pushed into the queue, the waiting consumer receives it immediately without having to poll again.
+- Note that only the specific client connection that issued the blocking command is blocked waiting for a result. That connection cannot send another command until the blocking operation completes (either by receiving an item or timing out).
+- Redis itself is not blocked and continues processing commands from other client connections normally.
 
 #### Step-by-Step Execution Example
 
