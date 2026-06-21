@@ -487,13 +487,13 @@ Gets top 10 players
 ```bash
 ZRANK leaderboard Alice
 ```
-Gets the rank, but neeche se :)
+Gets the rank, (highest score -> lowest score)
 
 Reverse rank
 ```bash
 ZREVRANK leaderboard Bob
 ```
-Gets the rank, upar se :)
+Gets the rank (lowest score -> highest score)
 
 
 ### Increment Score
