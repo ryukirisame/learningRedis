@@ -465,9 +465,9 @@ ZADD leaderboard 180 Charlie
 ```
 Redis will automatically sort the elements internally:
 ```bash
-Bob      250
-Charlie  180
 Alice    100
+Charlie  180
+Bob      250
 ```
 - Note: The elements are sorted in ascending order according to the score. So Alice will come first, then Charlie, then Bob.
  
