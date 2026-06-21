@@ -96,6 +96,25 @@ INCRBYFLOAT price 0.50   # → 10.49
 ```
 SET otp:john@example.com 123456 EX 300  // Expires in 5 minutes
 ```
+- The above command will run atomically. So, in just one single command, we are setting the value + setting the TTL also.
+- If we did something like this:
+```
+SET otp:john@example.com 123456
+EXPIRE otp:john@example.com 300
+```
+- These are two separate commands. Since they are separate commands, another client could potentially interact with the key between them.
+
+```
+Client A: SET otp:john@example.com 123456
+Client B: GET otp:john@example.com   --> sees key without TTL
+Client A: EXPIRE otp:john@example.com 300
+``` 
+Or if the application crashes after SET but before EXPIRE:
+```
+SET otp:john@example.com 123456
+<Application crashes>
+```
+The OTP remains forever because the expiration was never applied.
 
 ### When strings are not suitable
 Suppose we store this as one big string:
