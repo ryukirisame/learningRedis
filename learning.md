@@ -80,8 +80,10 @@ DECRBY visits 5     # → 6
 SET price 9.99
 INCRBYFLOAT price 0.50   # → 10.49
 ```
-Why "atomic" matters: Even with 1000 concurrent requests hitting INCR, Redis guarantees no lost updates — no race conditions. All of this because Redis is single-threaded.
-
+- Redis executes commands one at a time. When a command enters the Redis engine for execution, it is executed entirely, alone. No other command can run in parallel at that moment; all other commands wait in line until the current command finishes.
+- Because of this, every individual Redis command is atomic in nature. A client will never see a partially executed command—either the command has completed or it hasn't started yet.
+- This is also why commands like INCR don't suffer from race conditions or lost updates, even when thousands of clients execute them concurrently.
+- However, atomicity applies to a single command (or a Lua script). If your logic consists of multiple commands, Redis does not automatically make the whole sequence atomic, and race conditions can still occur unless you use transactions (MULTI/EXEC), Lua scripts, or Redis Functions.
 
 ### Counters
 - Strings can be used for counters like page views.
