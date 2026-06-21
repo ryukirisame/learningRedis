@@ -13,7 +13,7 @@
 
 # Why is Redis fast?
  - Data is stored in RAM.
- - Redis stores data in a simple way (O(1) data structures) compared to tradition RDMS, which uses B/B+ trees (O(logn) data structures) to store the data, requires SQL parsing, joins etc to serve a query.
+ - Redis stores data in a simple way (O(1) data structures) compared to traditional RDMS, which uses B/B+ trees (O(logn) data structures) to store the data, requires SQL parsing, joins etc to serve a query.
  - Redis is single-threaded, so no synchronisation & locking overhead. And it makes sense to keep it single-threaded because Redis is used as a single layer in a typical web architecture.
 
 # So Why Not Store Everything In Redis?
