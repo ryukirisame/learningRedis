@@ -509,6 +509,18 @@ ZINCRBY leaderboard 50 Alice
     - Score can represent: likes, views, engagement
 3. Priority Queues  
 
+
+# TTL
+#### How Redis Removes Expired Keys
+Redis does NOT instantly delete every expired key exactly at expiration time. Instead Redis uses:
+- Passive Expiration - When the key is accessed, check if the key has expired -> delete it.
+- Active Expiration - Periodically scan keys and remove the expired ones. This optimizes memory instantly.
+
+
+
+
+
+
 # Redis Persistence
 - Redis is an in-memory data-store. So, if redis server crashes or restarts, does that mean all data in redis would be lost? Well, no. Redis does allow persistence.
 - Persisting to disk allows redis to recover data after restart.
