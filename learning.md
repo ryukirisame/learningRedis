@@ -633,4 +633,34 @@ Yes, depending on persistence configuration.
 - Clients don't connect directly to the Redis master. Instead they ask Sentinel "who is the current master?" and Sentinel tells them. This means when a failover happens and a new master is elected, clients automatically get redirected to the new master without any manual intervention.
 - We typically run multiple Sentinel instances (at least 3) to avoid the Sentinel itself becoming a single point of failure.
 
+# Partitioning in Redis
+- How does Redis handles partitioning/sharding?
+  - Redis has something called Redis Cluster which is responsible for handling sharding.
+  - Redis cluster allows splitting data across multiple Redis nodes.
+
+## How Redis decides data placement?
+- First of all, Redis doesn't use Consistent Hashing for key-node mapping.
+- Redis uses something called: Hash Slots. These hash slots are fixed in number (16,384 hash slots). Every key maps to one of these hash slots.
+- All the redis shards they handle a range of these hash slots. For example:
+  -  ```
+     Node A -> slots 0-5460
+     Node B -> slots 5461-10922
+     Node C -> slots 10923-16383
+     ```
+
+### Steps involved in a client request
+
+1. The application calls the Redis client library (Jedis, Lettuce, Redisson, etc.) for a particular key. For example: `GET user:2`
+2. The client library then computes hash of the key and we get one of the slots. For example: `Slot 12000`. PS: The hash function is: `CRC16(key) % 16384`
+3. The client library maintains an in-memory cache of the entire redis toplogy: `Slot Range -> Redis Node`. The client library fetches this initially from any known redis node during startup. 
+4. For our `Slot 12000`, the correct node is Node C. So, the client library sends the request directly to Node C.
+
+#### When topology changes
+- When we add a new node to the cluster, slot rebalancing happens. So, the hash slots are remapped to the nodes.
+- Let's suppose the slot was moved from Node C to Node D.
+- Next time when the client library asks for `hash slot 12000`, Node C will respond to the client library that the key has been moved.
+- The client library will then update its redis topology cache. After updating, it will come to know the key has been moved to Node D.
+- Now it can make a request to Node D and get the response. 
+
+
 
