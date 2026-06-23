@@ -662,5 +662,18 @@ Yes, depending on persistence configuration.
 - The client library will then update its redis topology cache. After updating, it will come to know the key has been moved to Node D.
 - Now it can make a request to Node D and get the response. 
 
+## Hash Tags
+- If we want two keys to end up on the same shard we can use hash tags.
+```
+user:{123}:profile
+user:{123}:cart
+user:{123}:orders
+```
+- Presense of `{}` tells Redis to only hash the text inside the curly brackets.
+- So, only `123` will be hashed and this will determine the slot.
+- So, all the keys related to the user `123` will end up on the same node/shard.
 
-
+### Why do we need hash tags?
+- Multi-Key operation.
+  - Lets suppose that we wanted to perform union operation on two sets. `SUNION set1 set2`. For this to work, we need both keys on the same slot. Redis does't support performing operations on multiple keys residing on different nodes.
+  - Basically all those operation that requires two keys, like `MGET`, Blocking operation with multiple lists etc. 
