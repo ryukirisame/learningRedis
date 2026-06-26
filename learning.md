@@ -652,7 +652,7 @@ Yes, depending on persistence configuration.
 
 1. The application calls the Redis client library (Jedis, Lettuce, Redisson, etc.) for a particular key. For example: `GET user:2`
 2. The client library then computes hash of the key and we get one of the slots. For example: `Slot 12000`. PS: The hash function is: `CRC16(key) % 16384`
-3. The client library maintains an in-memory cache of the entire redis toplogy: `Slot Range -> Redis Node`. The client library fetches this initially from any known redis node during startup. 
+3. The client library maintains an in-memory cache of the entire redis toplogy: `Slot Range -> Redis Node`. The client library fetches this initially from any known redis node during startup. The redis nodes uses gossip protocol to propagate cluster information among each other.
 4. For our `Slot 12000`, the correct node is Node C. So, the client library sends the request directly to Node C.
 
 #### When topology changes
